@@ -4,7 +4,7 @@ import random
 pygame.init()
 WIDTH, HEIGHT = 1000, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Simulateur Self-KYC : Téléphone & État")
+pygame.display.set_caption("Simulateur Self-KYC : Téléphone & État (animé)")
 
 # Couleurs
 WHITE = (240, 240, 240)
@@ -29,6 +29,12 @@ current_number = None
 current_imei = None
 status = "Aucun appareil"
 color = BLACK
+
+# Animation variables
+arrow_x = 350
+arrow_y = 250
+arrow_active = False
+flash_counter = 0
 
 def etat_decision(sim, imei, validated=False):
     if validated:
@@ -55,9 +61,15 @@ while running:
                 current_imei = random.choice(list(known_imeis) + ["IMEI999"])
             if event.key == pygame.K_v:
                 status, color = etat_decision(current_sim, current_imei, validated=True)
+                arrow_active = True
+                arrow_x = 350
+                flash_counter = 30
                 continue
             if current_sim and current_imei:
                 status, color = etat_decision(current_sim, current_imei)
+                arrow_active = True
+                arrow_x = 350
+                flash_counter = 30
 
     screen.fill(WHITE)
 
@@ -75,9 +87,23 @@ while running:
 
     # État stylisé
     pygame.draw.rect(screen, BLACK, (600, 150, 320, 300), border_radius=15)
-    pygame.draw.rect(screen, WHITE, (610, 190, 300, 220), border_radius=10)
+    # Effet flash lumineux
+    if flash_counter > 0:
+        flash_color = color if flash_counter % 2 == 0 else WHITE
+        flash_counter -= 1
+    else:
+        flash_color = WHITE
+    pygame.draw.rect(screen, flash_color, (610, 190, 300, 220), border_radius=10)
+
     screen.blit(big_font.render("État", True, WHITE), (720, 160))
     screen.blit(font.render(status, True, color), (620, 220))
+
+    # Animation flèche
+    if arrow_active:
+        pygame.draw.polygon(screen, BLUE, [(arrow_x, arrow_y), (arrow_x+40, arrow_y-10), (arrow_x+40, arrow_y+10)])
+        arrow_x += 10
+        if arrow_x > 600:
+            arrow_active = False
 
     pygame.display.flip()
     clock.tick(30)
